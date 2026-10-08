@@ -1,0 +1,28 @@
+name: Fetch Carrd song
+on:
+  push:
+    branches: [master]
+    paths: [".github/workflows/carrd-deyyess-fetch.yml"]
+permissions:
+  contents: write
+jobs:
+  fetch-song:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download user-shared MP3
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet gdown
+          mkdir -p carrd-assets
+          gdown --id 1fOxv4ipIzB2W4-yAT3XHZGuahPFP5FsT -O carrd-assets/deyyess-would-you-go-down-on-a-girl.mp3
+          test "$(wc -c < carrd-assets/deyyess-would-you-go-down-on-a-girl.mp3)" -gt 3000000
+          head -c 3 carrd-assets/deyyess-would-you-go-down-on-a-girl.mp3 | grep -q ID3
+      - name: Publish audio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add carrd-assets/deyyess-would-you-go-down-on-a-girl.mp3
+          git diff --cached --quiet && exit 0
+          git commit -m "Add Déyyess audio for Carrd player"
+          git push
