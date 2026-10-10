@@ -1,0 +1,31 @@
+name: Import aespa audio
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/carrd-aespa-audio.yml
+permissions:
+  contents: write
+jobs:
+  import-audio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet gdown
+          mkdir -p carrd-assets
+          gdown "https://drive.google.com/uc?id=1xkAqLpTTlwQ3P_7u4XkVGrSC0-wB8HbA" -O carrd-assets/aespa-kiss-n-tell.mp3
+          echo "3014cbf81247add584cab72f32af52322eb33b9aa9a51c1d7b97d92bcd475a42  carrd-assets/aespa-kiss-n-tell.mp3" | sha256sum -c -
+          test "$(wc -c < carrd-assets/aespa-kiss-n-tell.mp3)" -eq 3910354
+      - name: Save audio
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add carrd-assets/aespa-kiss-n-tell.mp3
+          git diff --cached --quiet && exit 0
+          git commit -m "Add aespa Kiss n Tell for Carrd player"
+          git push
